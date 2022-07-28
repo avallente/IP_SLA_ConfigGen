@@ -1,0 +1,30 @@
+-- God, so this is kind of a mess and I apologize to the future care-takers of this query.
+-- This is an attempt to create a query that ultimately returns the first part of a IPSLA
+-- operation number.
+SELECT ip.IPAddress as [Target Address]
+, CASE 
+    WHEN NOT n.IP like '172.%' THEN
+        CASE
+            WHEN length(SUBSTRING(n.IP, CHARINDEX('.', n.IP, 8)+1, 5)) = 3 THEN CONCAT(SUBSTRING(n.IP, CHARINDEX('.', n.IP, 6)+1, 1), SUBSTRING(n.IP, CHARINDEX('.', n.IP, 8)+1, 5))
+            WHEN length(SUBSTRING(n.IP, CHARINDEX('.', n.IP, 8)+1, 5)) = 2 THEN CONCAT(SUBSTRING(n.IP, CHARINDEX('.', n.IP, 6)+1, 1), '0', SUBSTRING(n.IP, CHARINDEX('.', n.IP, 8)+1, 5))
+            WHEN length(SUBSTRING(n.IP, CHARINDEX('.', n.IP, 8)+1, 5)) = 1 THEN CONCAT(SUBSTRING(n.IP, CHARINDEX('.', n.IP, 6)+1, 1), '00', SUBSTRING(n.IP, CHARINDEX('.', n.IP, 8)+1, 5))
+        END
+    WHEN n.IP like '172.%' THEN
+        CASE
+            WHEN length(SUBSTRING(ip.IPAddress, CHARINDEX('.', ip.IPAddress, 8)+1, 5)) = 3 THEN CONCAT(SUBSTRING(ip.IPAddress, CHARINDEX('.', ip.IPAddress, 6)+1, 1), SUBSTRING(ip.IPAddress, CHARINDEX('.', ip.IPAddress, 8)+1, 5))
+            WHEN length(SUBSTRING(ip.IPAddress, CHARINDEX('.', ip.IPAddress, 8)+1, 5)) = 2 THEN CONCAT(SUBSTRING(ip.IPAddress, CHARINDEX('.', ip.IPAddress, 6)+1, 1), 0, SUBSTRING(ip.IPAddress, CHARINDEX('.', ip.IPAddress, 8)+1, 5))
+        END
+    END AS [SID]
+--, SUBSTRING(n.IP, CHARINDEX('.', n.IP, 6)+1, 1) AS [Dup Indic]
+--, SUBSTRING(n.IP, CHARINDEX('.', n.IP, 8)+1, 5) AS [Site ID]
+, n.NodeName as [tag]
+
+
+FROM Orion.Nodes n
+INNER JOIN Orion.NodeIPAddresses ip ON ip.NodeID=n.NodeID
+
+WHERE ip.IPAddress like '%.232.%'
+AND n.Status != '9'
+AND NOT n.NodeName like '%MPLS%'
+
+ORDER BY [tag]

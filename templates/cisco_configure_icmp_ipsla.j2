@@ -1,0 +1,7 @@
+ip sla {{ operation_number }}
+icmp-echo {{ destination_address }} source-interface Tunnel27
+tag ICMP-echo to {{ tag_text }}
+frequency 60
+exit
+ip sla schedule {{ operation_number }} life forever start-time now recurring
+!
